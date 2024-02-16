@@ -1,0 +1,31 @@
+import pandas as pd
+
+# Étape 2 : Chargement des données
+url = "https://download.geonames.org/export/dump/BD.zip"
+data = pd.read_csv(url, sep='\t', header=None, names=['ID', 'name', 'lat', 'lon'], usecols=[0, 1, 4, 5])
+
+# Étape 3 : Filtres et renommage des colonnes
+data = data[data['name'].str.startswith(('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'))]
+data.columns = ['ID', 'location_name', 'lat', 'long']
+
+# Sauvegarde du fichier CSV
+data.to_csv('burkina_location.csv', index=False)
+
+# Étape 4.1 : Extraction des données contenant le nom 'gounghin'
+gounghin_data = data[data['location_name'].str.contains('gounghin', case=False)]
+gounghin_data.to_csv('gounghin.csv', index=False)
+
+# Étape 4.2 : Extraction de la sous-partie des noms de lieux entre 'A' et 'P'
+subset_data = data[(data['lat'] >= 11) & (data['long'] <= 0.5)]
+min_lat = subset_data['lat'].min()
+min_lon = subset_data['long'].min()
+subset_data.to_csv('A_to_P.csv', index=False)
+
+# Étape 4.3 : Lieux dont les coordonnées sont comprises entre (lat >= 11 et lon <= 0.5)
+filtered_data = data[(data['lat'] >= 11) & (data['long'] <= 0.5)]
+
+# Étape 5 : Création du fichier Excel
+with pd.ExcelWriter('mini_projet.xlsx') as writer:
+    gounghin_data.to_excel(writer, sheet_name='gounghin', index=False)
+    subset_data.to_excel(writer, sheet_name='A_to_P', index=False)
+    filtered_data.to_excel(writer, sheet_name='lat_11_lon_05', index=False)
